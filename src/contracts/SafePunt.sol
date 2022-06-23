@@ -1,28 +1,12 @@
 /**
- *Submitted for verification at BscScan.com on 2021-03-01
+ *Submitted for verification at BscScan.com on 2021-03-20
 */
-
-/**
- *Submitted for verification at BscScan.com on 2021-03-01
-*/
-
-/**
-  
-   #BEE
-   
-   #LIQ+#RFI+#SHIB+#DOGE = #BEE
-
-   #SAFEMOON features:
-   3% fee auto add to the liquidity pool to locked forever when selling
-   2% fee auto distribute to all holders
-   I created a black hole so #Bee token will deflate itself in supply with every transaction
-   50% Supply is burned at start.
-   
-
- */
 
 pragma solidity ^0.6.12;
 // SPDX-License-Identifier: Unlicensed
+
+import "@openzeppelin/contracts/utils/Context.sol";
+
 interface IERC20 {
 
     function totalSupply() external view returns (uint256);
@@ -250,18 +234,6 @@ library SafeMath {
         return a % b;
     }
 }
-
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address payable) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
-    }
-}
-
 
 /**
  * @dev Collection of functions related to the address type
@@ -701,7 +673,7 @@ interface IUniswapV2Router02 is IUniswapV2Router01 {
 }
 
 
-contract SafeMoon is Context, IERC20, Ownable {
+contract SafePunt is Context, IERC20, Ownable {
     using SafeMath for uint256;
     using Address for address;
 
@@ -719,8 +691,8 @@ contract SafeMoon is Context, IERC20, Ownable {
     uint256 private _rTotal = (MAX - (MAX % _tTotal));
     uint256 private _tFeeTotal;
 
-    string private _name = "SafeMoon";
-    string private _symbol = "SAFEMOON";
+    string private _name = "SafePunt";
+    string private _symbol = "SAFEPUNT";
     uint8 private _decimals = 9;
     
     uint256 public _taxFee = 5;
@@ -729,8 +701,8 @@ contract SafeMoon is Context, IERC20, Ownable {
     uint256 public _liquidityFee = 5;
     uint256 private _previousLiquidityFee = _liquidityFee;
 
-    IUniswapV2Router02 public immutable uniswapV2Router;
-    address public immutable uniswapV2Pair;
+    IUniswapV2Router02 public uniswapV2Router;
+    address public uniswapV2Pair;
     
     bool inSwapAndLiquify;
     bool public swapAndLiquifyEnabled = true;
@@ -755,7 +727,10 @@ contract SafeMoon is Context, IERC20, Ownable {
     constructor () public {
         _rOwned[_msgSender()] = _rTotal;
         
-        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F);
+        //IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x05fF2B0DB69458A0750badebc4f9e13aDd608C7F); //Pancake Swap's address 0x9ac64cc6e4415144c455bd8e4837fea55603e5c3
+        // IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0xD99D1c33F9fC3444f8101754aBC46c52416550D1); //BSC testnet
+        // IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3); //BSC testnet 
+        IUniswapV2Router02 _uniswapV2Router = IUniswapV2Router02(0x8A38553900e5D1F83A76c83b09522929691112D0); //CFX Testnet
          // Create a uniswap pair for this new token
         uniswapV2Pair = IUniswapV2Factory(_uniswapV2Router.factory())
             .createPair(address(this), _uniswapV2Router.WETH());
@@ -768,6 +743,15 @@ contract SafeMoon is Context, IERC20, Ownable {
         _isExcludedFromFee[address(this)] = true;
         
         emit Transfer(address(0), _msgSender(), _tTotal);
+    }
+
+    //New Pancakeswap router version?
+    //No problem, just change it!
+    function setRouterAddress(address newRouter) public onlyOwner() {
+       //Thank you FreezyEx
+        IUniswapV2Router02 _newPancakeRouter = IUniswapV2Router02(newRouter);
+        uniswapV2Pair = IUniswapV2Factory(_newPancakeRouter.factory()).createPair(address(this), _newPancakeRouter.WETH());
+        uniswapV2Router = _newPancakeRouter;
     }
 
     function name() public view returns (string memory) {
